@@ -38,10 +38,11 @@ def train(cfg: DeepSpeechConfig):
         precision=cfg.trainer.precision,
         spect_cfg=cfg.data.spect
     )
+    breakpoint()
 
     trainer = hydra.utils.instantiate(
         config=cfg.trainer,
-        replace_sampler_ddp=False,
+        #replace_sampler_ddp=False,
         callbacks=[checkpoint_callback] if cfg.trainer.enable_checkpointing else None,
     )
     trainer.fit(model, data_loader)
