@@ -243,11 +243,11 @@ def _collate_fn(batch):
     def func(p):
         return p[0].size # it originally has a size(1)
 
-    batch = sorted(batch, key=lambda sample: sample[0].size, reverse=True) #Originally it is size(1)
+    batch = sorted(batch, key=lambda sample: sample[0].shape[1], reverse=True) #Originally it is size(1)
     longest_sample = max(batch, key=func)[0]
-    freq_size = longest_sample.size ## original be size(0)
+    freq_size = longest_sample.shape[0] ## original be size(0)
     minibatch_size = len(batch)
-    max_seqlength = longest_sample.size ## should be size(1)
+    max_seqlength = longest_sample.shape[1] ## should be size(1)
     inputs = torch.zeros(minibatch_size, 1, freq_size, max_seqlength)
     input_percentages = torch.FloatTensor(minibatch_size)
     target_sizes = torch.IntTensor(minibatch_size)
@@ -259,7 +259,6 @@ def _collate_fn(batch):
         seq_length = tensor.size#(1)
         print("inputs[x][0].shape:", inputs[x][0].shape)
         print("tensor.shape:", tensor.shape)
-        breakpoint()
         inputs[x][0].narrow(1, 0, seq_length).copy_(torch.from_numpy(tensor))
         input_percentages[x] = seq_length / float(max_seqlength)
         target_sizes[x] = len(target)
