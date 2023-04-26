@@ -195,7 +195,7 @@ class SpectrogramDataset(Dataset):
                  file_path: str,
                  #labels: list,
                  normalize: bool = False,
-                 aug_cfg: AugmentationConfig = None,
+                 #aug_cfg: AugmentationConfig = None,
                  nperseg=256, noverlap=None):
         """
         Dataset that loads tensors via a csv containing file paths to audio files and transcripts separated by
