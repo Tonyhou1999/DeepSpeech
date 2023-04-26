@@ -54,7 +54,7 @@ class DeepSpeechDataModule(pl.LightningDataModule):
 
     def _create_dataset(self, input_path):
         dataset = SpectrogramDataset(
-            audio_conf=self.spect_cfg,
+            #audio_conf=self.spect_cfg,
             file_path='/content/drive/MyDrive/WISPLab/Trial Collection/04.20',
             normalize=True,
             aug_cfg=self.aug_cfg
