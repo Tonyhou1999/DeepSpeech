@@ -243,7 +243,7 @@ def _collate_fn(batch):
     def func(p):
         return p[0].size(1)
 
-    batch = sorted(batch, key=lambda sample: sample[0].size(1), reverse=True)
+    batch = sorted(batch, key=lambda sample: sample[0].size, reverse=True) #Originally it is size(1)
     longest_sample = max(batch, key=func)[0]
     freq_size = longest_sample.size(0)
     minibatch_size = len(batch)
