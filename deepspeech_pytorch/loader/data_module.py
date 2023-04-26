@@ -7,7 +7,6 @@ from deepspeech_pytorch.loader.data_loader import SpectrogramDataset, DSRandomSa
 
 
 class DeepSpeechDataModule(pl.LightningDataModule):
-
     def __init__(self,
                  labels: list,
                  data_cfg: DataConfig,
@@ -56,6 +55,7 @@ class DeepSpeechDataModule(pl.LightningDataModule):
     def _create_dataset(self, input_path):
         dataset = SpectrogramDataset(
             #audio_conf=self.spect_cfg,
+            input_path = '/content/drive/MyDrive/WISPLab/Trial Collection/04.20'
             file_path=input_path,
             normalize=True,
             aug_cfg=self.aug_cfg
