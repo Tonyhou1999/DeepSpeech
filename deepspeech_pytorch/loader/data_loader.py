@@ -241,7 +241,7 @@ class SpectrogramDataset(Dataset):
 
 def _collate_fn(batch):
     def func(p):
-        return p[0].size(1)
+        return p[0].size # it originally has a size(1)
 
     batch = sorted(batch, key=lambda sample: sample[0].size, reverse=True) #Originally it is size(1)
     longest_sample = max(batch, key=func)[0]
