@@ -191,9 +191,9 @@ class ChunkSpectrogramParser(AudioParser):
 
 class SpectrogramDataset(Dataset):
     def __init__(self,
-                 audio_conf: SpectConfig,
+                 #audio_conf: SpectConfig,
                  file_path: str,
-                 labels: list,
+                 #labels: list,
                  normalize: bool = False,
                  aug_cfg: AugmentationConfig = None,
                  nperseg=256, noverlap=None):

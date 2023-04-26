@@ -55,9 +55,8 @@ class DeepSpeechDataModule(pl.LightningDataModule):
 
     def _create_dataset(self, input_path):
         dataset = SpectrogramDataset(
-            audio_conf=self.spect_cfg,
+            #audio_conf=self.spect_cfg,
             input_path=input_path,
-            labels=self.labels,
             normalize=True,
             aug_cfg=self.aug_cfg
         )
