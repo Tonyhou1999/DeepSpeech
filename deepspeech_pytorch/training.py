@@ -38,7 +38,7 @@ def train(cfg: DeepSpeechConfig):
         precision=cfg.trainer.precision,
         spect_cfg=cfg.data.spect
     )
-    breakpoint()
+    
 
     trainer = hydra.utils.instantiate(
         config=cfg.trainer,
