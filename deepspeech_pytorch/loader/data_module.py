@@ -57,6 +57,6 @@ class DeepSpeechDataModule(pl.LightningDataModule):
             #audio_conf=self.spect_cfg,
             file_path='/content/drive/MyDrive/WISPLab/Trial Collection/04.20',
             normalize=True,
-            aug_cfg=self.aug_cfg
+            #aug_cfg=self.aug_cfg
         )
         return dataset
