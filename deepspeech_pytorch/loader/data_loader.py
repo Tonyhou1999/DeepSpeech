@@ -7,10 +7,13 @@ from tempfile import NamedTemporaryFile
 import librosa
 import numpy as np
 import sox
+import pandas as pd
 import torch
+from scipy import signal
 from torch.utils.data import Dataset, Sampler, DistributedSampler, DataLoader
 import torchaudio
 
+import torch.nn.functional as F
 from deepspeech_pytorch.configs.train_config import SpectConfig, AugmentationConfig
 from deepspeech_pytorch.loader.spec_augment import spec_augment
 
@@ -186,13 +189,14 @@ class ChunkSpectrogramParser(AudioParser):
             yield spect
 
 
-class SpectrogramDataset(Dataset, SpectrogramParser):
+class SpectrogramDataset(Dataset):
     def __init__(self,
                  audio_conf: SpectConfig,
-                 input_path: str,
+                 file_path: str,
                  labels: list,
                  normalize: bool = False,
-                 aug_cfg: AugmentationConfig = None):
+                 aug_cfg: AugmentationConfig = None,
+                 nperseg=256, noverlap=None):
         """
         Dataset that loads tensors via a csv containing file paths to audio files and transcripts separated by
         a comma. Each new line is a different sample. Example below:
@@ -206,42 +210,33 @@ class SpectrogramDataset(Dataset, SpectrogramParser):
         :param normalize: Apply standard mean and deviation normalization to audio tensor
         :param augmentation_conf(Optional): Config containing the augmentation parameters
         """
-        self.ids = self._parse_input(input_path)
-        self.size = len(self.ids)
-        self.labels_map = dict([(labels[i], i) for i in range(len(labels))])
-        super(SpectrogramDataset, self).__init__(audio_conf, normalize, aug_cfg)
+        f_sound = open(os.path.join(file_path ,'AllSamples10kV3.dat'),'r')
+        tmp_r = np.fromfile(f_sound, dtype = np.float32)
+        audio_sig_reshape = tmp_r.reshape(-1, int(2.5*10000)) 
+        self.data = audio_sig_reshape
+        tmps = pd.read_table(os.path.join(file_path ,'fruits.csv'), sep = ',').to_numpy()[:,0].tolist()
+        words = ['zero','one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
+        word_to_index = {word: i for i, word in enumerate(words)}
+        self.labels  = [word_to_index[label] for label in tmps]
+        self.nperseg = nperseg
+        self.noverlap = noverlap
+        
+        #self.ids = self._parse_input(input_path)
+        #self.size = len(self.ids)
+        #self.labels_map = dict([(labels[i], i) for i in range(len(labels))])
+        super(SpectrogramDataset, self).__init__()
 
     def __getitem__(self, index):
-        sample = self.ids[index]
-        audio_path, transcript_path = sample[0], sample[1]
-        spect = self.parse_audio(audio_path)
-        transcript = self.parse_transcript(transcript_path)
-        return spect, transcript
-
-    def _parse_input(self, input_path):
-        ids = []
-        if os.path.isdir(input_path):
-            for wav_path in Path(input_path).rglob('*.wav'):
-                transcript_path = str(wav_path).replace('/wav/', '/txt/').replace('.wav', '.txt')
-                ids.append((wav_path, transcript_path))
-        else:
-            # Assume it is a manifest file
-            with open(input_path) as f:
-                manifest = json.load(f)
-            for sample in manifest['samples']:
-                wav_path = os.path.join(manifest['root_path'], sample['wav_path'])
-                transcript_path = os.path.join(manifest['root_path'], sample['transcript_path'])
-                ids.append((wav_path, transcript_path))
-        return ids
-
-    def parse_transcript(self, transcript_path):
-        with open(transcript_path, 'r', encoding='utf8') as transcript_file:
-            transcript = transcript_file.read().replace('\n', '')
-        transcript = list(filter(None, [self.labels_map.get(x) for x in list(transcript)]))
-        return transcript
+      #First is to retract the sample directly from the data
+        current_sample = signal.decimate(self.data[index],10)
+        frequency, time,spect = signal.spectrogram(current_sample, 1e3)
+        mean = spect.mean()
+        std = spect.std()
+        spectrogram_new = (spect - mean) / std
+        return spectrogram_new, self.labels[index]
 
     def __len__(self):
-        return self.size
+        return self.data.shape[0]
 
 
 def _collate_fn(batch):
