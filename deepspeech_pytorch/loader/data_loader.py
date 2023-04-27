@@ -241,14 +241,14 @@ class SpectrogramDataset(Dataset):
 
 def _collate_fn(batch):
     def func(p):
-        return p[0].size # it originally has a size(1)
+        return p[0].shape[0] # it originally has a size(1)
 
     batch = sorted(batch, key=lambda sample: sample[0].shape[1], reverse=True) #Originally it is size(1)
     longest_sample = max(batch, key=func)[0]
     freq_size = longest_sample.shape[1] ## original be size(0)
     minibatch_size = len(batch)
     max_seqlength = longest_sample.shape[0] ## should be size(1)
-    inputs = torch.zeros(minibatch_size, 1, freq_size, max_seqlength)
+    inputs = torch.zeros(minibatch_size, 1,freq_size,max_seqlength)
     input_percentages = torch.FloatTensor(minibatch_size)
     target_sizes = torch.IntTensor(minibatch_size)
     targets = []
@@ -256,13 +256,13 @@ def _collate_fn(batch):
         sample = batch[x]
         tensor = sample[0]
         target = sample[1]
-        seq_length = tensor.size#(1)
+        seq_length = tensor.shape[0]#(1)
         print("inputs[x][0].shape:", inputs[x][0].shape)
         print("tensor.shape:", tensor.shape)
-        inputs[x][0].narrow(1, 0, seq_length).copy_(torch.from_numpy(tensor))
+        inputs[x][0].narrow(1, 0, seq_length).copy_(torch.from_numpy(tensor.T))
         input_percentages[x] = seq_length / float(max_seqlength)
-        target_sizes[x] = len(target)
-        targets.extend(target)
+        target_sizes[x] = (target)
+        targets.append(target)
     targets = torch.tensor(targets, dtype=torch.long)
     return inputs, targets, input_percentages, target_sizes
 
